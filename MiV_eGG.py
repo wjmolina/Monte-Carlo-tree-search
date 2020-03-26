@@ -82,7 +82,7 @@ class connect_4(object):
         return connect_4(self.board_state.copy(), self.action_state.copy(), self.whose_turn, self.is_game_over, self.winner)
 
     def get_actions(self):
-        return [(self.action_state[i], i) for i in range(len(self.action_state)) if self.action_state[i] >= 0]
+        return [i for i in range(len(self.action_state)) if self.action_state[i] >= 0]
 
     def get_children(self):
         children = []
@@ -93,9 +93,9 @@ class connect_4(object):
         return children
 
     def play(self, action):
-        self.board_state[action[0] * 7 + action[1]] = self.whose_turn
+        self.board_state[self.action_state[action] * 7 + action] = self.whose_turn
         self.whose_turn = 3 - self.whose_turn
-        self.action_state[action[1]] -= 1
+        self.action_state[action] -= 1
         self.evaluate()
 
     def display(self):
@@ -150,8 +150,21 @@ class MiV_eGG:
     def Selection(self):
         pointer = self._pointer
         while len(pointer._children) != 0:
-            # pointer = choice(list(pointer._children.values())) # Random Search
-            pointer = max([[child._win / (child._total + 1) + sqrt(4 * log(child._parent._total) / (child._total + 1)), child] for child in list(pointer._children.values())], key=lambda x : x[0])[1] # Smart Search
+            #################
+            # Random Search #
+            #################
+            # pointer = choice(list(pointer._children.values()))
+
+            ################$
+            # Clever Search #
+            ################$
+            tmp = []
+            for child in list(pointer._children.values()):
+                try:
+                    tmp.append([child._win / child._total + sqrt(2) * sqrt(log(child._parent._total) / child._total), child])
+                except:
+                    return child
+            pointer = max(tmp, key=lambda x : x[0])[1]
         return pointer
 
     def Expansion(self, pointer):
@@ -248,45 +261,45 @@ class MiV_MiniMaximus:
 #             miV_eGG2.play(bestMve2)
 #             toyGame1.display()
 
-# toyGame = connect_4()
-# miV_eGG = MiV_eGG(toyGame)
-# toyGame.display()
-# while not toyGame.is_game_over:
-#     while True:
-#         if keyboard.is_pressed('q'):
-#             print('quit learning')
-#             break
-#         miV_eGG.Learn(1000)
-#         print('learned')
-
-#     bestMove = (int(input()), int(input()))
-#     toyGame.play(bestMove)
-#     miV_eGG.play(bestMove)
-#     toyGame.display()
-
-#     if toyGame.is_game_over:
-#         break
-
-#     while True:
-#         if keyboard.is_pressed('q'):
-#             print('quit learning')
-#             break
-#         miV_eGG.Learn(1000)
-#         print('learned')
-        
-#     bestMove = miV_eGG.get_best_move()
-#     toyGame.play(bestMove)
-#     miV_eGG.play(bestMove)
-#     toyGame.display()
-#     print('press to reset')
-#     input()
-
-toyGame = connect_4()
+toyGame = connect_4(board_state=[0,0,0,1,0,0,0,
+                                 0,0,1,2,2,0,0,
+                                 0,0,2,2,1,0,0,
+                                 0,0,1,1,2,0,0,
+                                 0,0,2,2,1,2,1,
+                                 0,0,2,1,2,1,1,], action_state=[5, 5, 0, - 1, 0, 3, 3], whose_turn=1, is_game_over=False, winner=0)
 miV_eGG = MiV_eGG(toyGame)
 toyGame.display()
 while not toyGame.is_game_over:
-    miV_eGG.Learn(100000)
+    # cnt = 0
+    # while True:
+    #     if keyboard.is_pressed('q'):
+    #         print('done learning')
+    #         break
+    #     miV_eGG.Learn(1000)
+    #     cnt += 1
+    #     print(cnt, 'learning')
+    # print('ENTER TO PROCEED')
+    # input()
+    miV_eGG.Learn(200000)
     bestMove = miV_eGG.get_best_move()
+    toyGame.play(bestMove)
+    miV_eGG.play(bestMove)
+    toyGame.display()
+    if toyGame.is_game_over:
+        break
+    # cnt = 0
+    # while True:
+    #     if keyboard.is_pressed('q'):
+    #         print('done learning')
+    #         break
+    #     miV_eGG.Learn(1000)
+    #     cnt += 1
+    #     print(cnt, 'learning')
+    # print('ENTER TO PROCEED')
+    # input()
+    miV_eGG.Learn(200000)
+    print('your move')
+    bestMove = int(input())
     toyGame.play(bestMove)
     miV_eGG.play(bestMove)
     toyGame.display()
